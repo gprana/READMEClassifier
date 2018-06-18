@@ -59,15 +59,15 @@ if __name__ == '__main__':
         logging.info('Deriving features')
         derived_features = derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
                 
-        # logging.info('Derived features shape:')
-        # logging.info(derived_features.shape)
+        logging.debug('Derived features shape:')
+        logging.debug(derived_features.shape)
                 
         features_tfidf = pandas.DataFrame(tfidfX.todense())
         features_tfidf.columns = vectorizer.get_feature_names()
         features_combined = pandas.concat([features_tfidf, derived_features], axis=1)
         
-        # logging.info('Combined features shape:')
-        # logging.info(features_combined.shape)
+        logging.debug('Combined features shape:')
+        logging.debug(features_combined.shape)
 
         labels_matrix = classifier.predict(features_combined.values)
         output = df.loc[:,['file_id','section_id','local_readme_file','heading_markdown']]

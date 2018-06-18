@@ -14,7 +14,7 @@ This project is written in Python 3.
 
 ### Training Model and Classifying Files
 1. Place the README files whose sections are to be classified in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`.
-2. Run `script/loading/load_target_section_overview.py` and `script/loading/load_target_section_content.py` to load the section heading and content data into database.
+2. Run `script/loading/load_target_section_data.py` to load the section heading and content data into database.
 3. Run `script/classifier/classifier_train_model.py`. This script will train SVM model using combined development and evaluation dataset. The resulting model, TFIDF vectorizer, and matrix label binarizer will be saved in `model/` directory.
 4. Run `script/classifier/classifier_classify_target.py`. This script will use the saved model, vectorizer, and binarizer to classify target README files in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`. By default, the resulting labels will be saved in `output/output.csv`
 
