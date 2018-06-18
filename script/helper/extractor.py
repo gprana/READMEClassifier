@@ -2,9 +2,17 @@ import logging
 from script.helper.helper2 import *
 import sqlite3
 from sqlite3 import Error
+import sys
+import codecs
 import pandas
 from pandas import DataFrame
 import os
+import shutil
+
+def merge_classes_1_and_2(code_string):
+    code_string = code_string.replace('2','1')
+    code_csv = ','.join([d for d in code_string])
+    return code_csv
 
 def abstract_out_markdown(filenames, readme_file_dir, temp_abstracted_markdown_file_dir):                 
     for f_row in filenames:
@@ -214,7 +222,7 @@ abstract out code section blocks.
 Perform no other abstraction to allow headings such as "Section 2", "Section 3", etc. to be extracted as is 
 for later reference / manual checking (instead of having everything turned into "Section @abstr_number").
 '''
-def extract_headings_from_files_in_directory(target_readme_file_dir):
+def extract_headings_from_files_in_directory(target_readme_file_dir, db_filename, overview_table_name):
     overview = DataFrame(columns=['section_id', 'file_id', 'url', 'local_readme_file', 'heading_markdown',
                                   'abstracted_heading_markdown', 'heading_text', 'abstracted_heading_text',
                                   'heading_level'])
@@ -283,4 +291,102 @@ def extract_headings_from_files_in_directory(target_readme_file_dir):
                      
                     section_id = section_id + 1               
         file_id = file_id + 1
+    
+    conn = sqlite3.connect(db_filename)
+    try:
+        c = conn.cursor()
+        logging.info("Saving section overviews to database")
+        # Delete existing data
+        c.execute('DELETE FROM {0}'.format(overview_table_name))
+        conn.commit()
+        overview.to_sql(name='target_section_overview', con = conn, if_exists='append', index=False)
+        conn.commit()        
+        logging.info("Section headings loaded into database")
+    except Error as e:
+        logging.exception(e)
+    except Exception as e:
+        logging.exception(e)
+    finally:
+        conn.close()
+        
     return overview    
+
+def load_section_overview_from_csv(input_filename_csv, db_filename, target_overview_table_name):
+    df = pandas.read_csv(input_filename_csv, header=0, delimiter=',',
+                     names=['section_id','file_id','url','heading_markdown','section_code'])
+    
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    if sys.stderr.encoding != 'utf-8':
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+    
+    readme_file_generator = lambda x: x.replace('https://github.com/','').replace('/','.') + '.md'
+    df['local_readme_file'] = df['url'].apply(readme_file_generator) 
+    df['heading_text'] = df['heading_markdown'].apply(extract_text_in_heading_markdown)
+    # In markdown, # = heading level 1, ## = heading level 2, etc.
+    df['heading_level'] = df['heading_markdown'].apply(lambda x : len(re.search('^#+', x).group(0)))
+    df['abstracted_heading_markdown'] = df['heading_markdown'].apply(lambda x : abstract_text(x).replace('\n', ' ').strip())
+    df['abstracted_heading_text'] = df['abstracted_heading_markdown'].apply(extract_text_in_heading_markdown)
+    # Don't convert to int, as data contains '-' for 'not in any class'
+    df['section_code'] = df['section_code'].apply(lambda x : merge_classes_1_and_2(x))
+    
+    try:
+        logging.info('Emptying table and loading overviews')
+        conn = sqlite3.connect(db_filename)
+        # Delete existing data
+        c = conn.cursor()
+        c.execute('DELETE FROM {0}'.format(target_overview_table_name))
+        conn.commit()
+        df.to_sql(target_overview_table_name, conn, if_exists='append', index=False)
+        logging.info('Loading completed')
+        logging.info(df.shape)
+        logging.info('Deleting entries with only \'##\' as text')
+        # Delete '##' entries that correspond to horizontal lines and are all labeled as '-'
+        c.execute('DELETE FROM {0} WHERE heading_markdown=\'##\''.format(target_overview_table_name))
+        conn.commit()
+    except Exception as e:
+        logging.exception(e)
+    finally:
+        conn.close()
+        
+def delete_existing_section_content_data(temp_abstracted_markdown_file_dir, db_filename, section_content_table_name):
+    if (not temp_abstracted_markdown_file_dir.startswith('../../temp')):
+        logging.info('Please ensure that temp_abstracted_markdown_file_dir config variable is set correctly')
+        sys.exit()
+    else:
+        shutil.rmtree(temp_abstracted_markdown_file_dir)
+        os.mkdir(temp_abstracted_markdown_file_dir)
+    
+    conn = sqlite3.connect(db_filename)
+    try:
+        c = conn.cursor()
+        logging.info("Cleaning existing data")
+        c.execute('DELETE FROM {0}'.format(section_content_table_name))
+        conn.commit()
+    except Error as e:
+        logging.exception(e)
+    except Exception as e:
+        logging.exception(e)
+    finally:
+        conn.close()
+
+def retrieve_readme_filenames_from_db(db_filename, section_overview_table_name):
+    conn = sqlite3.connect(db_filename)
+    try:
+        c = conn.cursor()
+        logging.info("Fetching list of distinct filenames")
+        
+        result = c.execute("""
+            SELECT DISTINCT local_readme_file
+            FROM {0} 
+            ORDER BY file_id, section_id""".format(section_overview_table_name))
+        
+        filenames = result.fetchall()
+        conn.commit()
+    except Error as e:
+        logging.exception(e)
+    except Exception as e:
+        logging.exception(e)
+    finally:
+        conn.close()  
+    return filenames 
