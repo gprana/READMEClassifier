@@ -100,8 +100,7 @@ def extract_section_from_abstracted_files(temp_abstracted_markdown_file_dir, db_
             headings.set_value(i,'content_text_w_o_tags',curr_section_content_w_o_tags)
         
         df_to_save = headings[['file_id','section_id','content_text_w_o_tags']]
-        # Use append when saving since table is already emptied at the beginning
-        df_to_save.to_sql(name=content_table, con=conn, if_exists='append', index=False)
+        df_to_save.to_sql(name=content_table, con=conn, if_exists='replace', index=False)
     except Error as e:
         logging.exception(e)
     except Exception as e:
@@ -299,7 +298,7 @@ def extract_headings_from_files_in_directory(target_readme_file_dir, db_filename
         # Delete existing data
         c.execute('DELETE FROM {0}'.format(overview_table_name))
         conn.commit()
-        overview.to_sql(name='target_section_overview', con = conn, if_exists='append', index=False)
+        overview.to_sql(name='target_section_overview', con = conn, if_exists='replace', index=False)
         conn.commit()        
         logging.info("Section headings loaded into database")
     except Error as e:

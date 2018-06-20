@@ -16,7 +16,8 @@ This project is written in Python 3.
 1. Place the README files whose sections are to be classified in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`.
 2. Run `script/loading/load_target_section_data.py` to load the section heading and content data into database.
 3. Run `script/classifier/classifier_train_model.py`. This script will train SVM model using combined development and evaluation dataset. The resulting model, TFIDF vectorizer, and matrix label binarizer will be saved in `model/` directory.
-4. Run `script/classifier/classifier_classify_target.py`. This script will use the saved model, vectorizer, and binarizer to classify target README files in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`. By default, the resulting labels will be saved in `output/output.csv`
+4. Run `script/classifier/classifier_classify_target.py`. This script will use the saved model, vectorizer, and binarizer to classify target README files in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`. 
+5. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
 
 ### Running 10-fold Cross Validation Experiments
 1. Run the `script/experiment/*` scripts as required. E.g. `script/experiment/classifier_75pct_tfidf.py` for the SVM version.
