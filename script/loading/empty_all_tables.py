@@ -21,6 +21,8 @@ if __name__ == '__main__':
         c.execute('DELETE FROM section_content_25pct')
         c.execute('DELETE FROM section_overview_75pct')
         c.execute('DELETE FROM section_content_75pct')
+        c.execute('DELETE FROM section_content_combined')
+        c.execute('DELETE FROM section_overview_combined')
         c.execute('DELETE FROM target_section_overview')
         c.execute('DELETE FROM target_section_content')
         conn.commit()

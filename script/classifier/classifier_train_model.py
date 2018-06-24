@@ -38,21 +38,11 @@ if __name__ == '__main__':
         SELECT t1.file_id, t1.section_id, t1.url, t1.heading_text, t2.content_text_w_o_tags, 
         t1.abstracted_heading_text || ' ' || t2.content_text_w_o_tags AS abstracted_heading_plus_content, 
         t1.section_code
-        FROM section_overview_25pct t1 
-        JOIN section_content_25pct t2 
+        FROM section_overview_combined t1 
+        JOIN section_content_combined t2 
         ON t1.file_id=t2.file_id AND t1.section_id=t2.section_id
         """
-        df1 = pandas.read_sql_query(con=conn, sql=sql_text1)
-        sql_text2 = """
-        SELECT t1.file_id, t1.section_id, t1.url, t1.heading_text, t2.content_text_w_o_tags, 
-        t1.abstracted_heading_text || ' ' || t2.content_text_w_o_tags AS abstracted_heading_plus_content, 
-        t1.section_code
-        FROM section_overview_75pct t1 
-        JOIN section_content_75pct t2 
-        ON t1.file_id=t2.file_id AND t1.section_id=t2.section_id
-        """
-        df2 = pandas.read_sql_query(con=conn, sql=sql_text2)
-        df = pandas.concat([df1, df2])
+        df = pandas.read_sql_query(con=conn, sql=sql_text1)
         
         df_randomized_order = df.sample(frac=1, random_state=rng_seed)
         heading_plus_content_corpus = df_randomized_order['abstracted_heading_plus_content']
