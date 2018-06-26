@@ -15,22 +15,32 @@ from script.helper.heuristic2 import *
 from script.helper.balancer import *
 import time
 import operator
-from sklearn.metrics import roc_auc_score
 
-class roc_auc_scorer:
+from sklearn.metrics import confusion_matrix
+import math
+
+class mcc_scorer:
     def __call__(self, estimator, X, y):
         num_labels = len(y)
-        roc_auc = 0
+        mcc = 0
         y_out = estimator.predict(X)
         for i in range(num_labels):  
             y_true = y[i]
             y_pred = y_out[i]
-            roc_auc += float(y_true.sum())/num_labels*roc_auc_score(y_true, y_pred)
-        return roc_auc
+            mcc += float(y_true.sum())/num_labels*self._mcc_score(y_true, y_pred)
+        return mcc
+    
+    def _mcc_score(self, y_true, y_pred):
+        tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+        denom = (math.sqrt((tp+fp))*math.sqrt((tp+fn))*math.sqrt((tn+fp))*math.sqrt((tn+fn)))
+        if denom==0:
+            return 1.0
+        else:
+            return (tp*tn - fp*fn)/denom
+        
 
 if __name__ == '__main__':
     start = time.time()
-    
     config = configparser.ConfigParser()
     config.read('../../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
@@ -92,12 +102,12 @@ if __name__ == '__main__':
         logging.info('Computing overall results')
 #         scores_precision = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='precision_weighted').mean()
 #         scores_recall = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='recall_weighted').mean()        
-        scores_roc_auc = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring=roc_auc_scorer()).mean()
+        scores_mcc = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring=mcc_scorer()).mean()
         
 #         logging.info(classification_report(labels_matrix, y_pred, digits=3))
 #         logging.info('precision_weighted : {0}'.format(scores_precision))
 #         logging.info('recall_weighted : {0}'.format(scores_recall))
-        logging.info('ROC AUC : {0}'.format(scores_roc_auc))
+        logging.info('MCC : {0}'.format(scores_mcc))
 
 #         logging.info('Determining most significant feature for each label')
 #         for idx in range(0,len(label_set)):

@@ -15,22 +15,28 @@ from script.helper.heuristic2 import *
 from script.helper.balancer import *
 import time
 import operator
-from sklearn.metrics import roc_auc_score
 
-class roc_auc_scorer:
+from sklearn.metrics import confusion_matrix
+import math
+
+class kappa_scorer:    
     def __call__(self, estimator, X, y):
         num_labels = len(y)
-        roc_auc = 0
+        kappa = 0
         y_out = estimator.predict(X)
         for i in range(num_labels):  
             y_true = y[i]
             y_pred = y_out[i]
-            roc_auc += float(y_true.sum())/num_labels*roc_auc_score(y_true, y_pred)
-        return roc_auc
+            kappa += float(y_true.sum())/num_labels*self._kappa_score(y_true, y_pred)
+        return kappa
+    
+    def _kappa_score(self, y_true, y_pred):
+        tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+        return ((tn+fp)*(tn+fn)+(fn+tp)*(fp+tp))/math.pow(len(y_pred),2)
+        
 
 if __name__ == '__main__':
     start = time.time()
-    
     config = configparser.ConfigParser()
     config.read('../../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
@@ -92,12 +98,12 @@ if __name__ == '__main__':
         logging.info('Computing overall results')
 #         scores_precision = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='precision_weighted').mean()
 #         scores_recall = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='recall_weighted').mean()        
-        scores_roc_auc = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring=roc_auc_scorer()).mean()
+        scores_kappa = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring=kappa_scorer()).mean()
         
 #         logging.info(classification_report(labels_matrix, y_pred, digits=3))
 #         logging.info('precision_weighted : {0}'.format(scores_precision))
 #         logging.info('recall_weighted : {0}'.format(scores_recall))
-        logging.info('ROC AUC : {0}'.format(scores_roc_auc))
+        logging.info('Kappa : {0}'.format(scores_kappa))
 
 #         logging.info('Determining most significant feature for each label')
 #         for idx in range(0,len(label_set)):
