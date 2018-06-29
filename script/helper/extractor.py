@@ -157,13 +157,12 @@ def extract_section_from_abstracted_files_v2(temp_abstracted_markdown_file_dir, 
                 If a candidate heading is found, compare it with the heading we're looking for.
                 If it's actually the one we want, set a flag, so if the next heading happens to have same string,
                 we can tell that it's a different heading.
-                There may be case where the heading in DB
                 '''
                 if curr_filename_lines[curr_filename_line_number].startswith('#'):
                     # Potential heading, starting with #. Is it the heading we want?
                     candidate_heading = curr_filename_lines[curr_filename_line_number].replace('\n',' ').strip() 
                     if ((candidate_heading != abstracted_heading_markdown.strip()) or heading_already_found):
-                        logging.info('Encountered new heading in document: {0}'.format(candidate_heading))
+                        logging.info('Searching for {0}. Encountered new heading in document: {1}'.format(abstracted_heading_markdown, candidate_heading))
                         break
                     else:
                         logging.info('Found the heading for {0}'.format(heading_markdown))
@@ -236,59 +235,70 @@ def extract_headings_from_files_in_directory(target_readme_file_dir, db_filename
         url = 'https://github.com/{0}/{1}'.format(username, repo_name)
         
         with open(target_readme_file_dir + filename, 'r', encoding='utf-8', errors='backslashreplace') as f:
-            logging.info("Searching for candidate headings in file {0}".format(filename))
-            content = f.read()
-            # Perform abstraction on code section only before checking for potential headings
-            # This is to reduce possibility of code snippets starting with '#' being read as potential headings
-            # without changing genuine heading that happens to contain numbers or other things, e.g. '# Section 1'
-            content2 = abstract_out_code_section(content)
-            content_lines = content2.splitlines()
             
-            # Start at first nonempty line index
-            curr_filename_line_number = next(i for i, j in enumerate(content_lines) if j)
-            
-            section_id = 1
-            while (curr_filename_line_number<len(content_lines)):
-                found_candidate_heading = False
-                line = content_lines[curr_filename_line_number]
+            try:
+                logging.info("Searching for candidate headings in file {0}".format(filename))
+                content = f.read()
+                # Perform abstraction on code section only before checking for potential headings
+                # This is to reduce possibility of code snippets starting with '#' being read as potential headings
+                # without changing genuine heading that happens to contain numbers or other things, e.g. '# Section 1'
+                content2 = abstract_out_code_section(content)
+                content_lines = content2.splitlines()
                 
-                if line.startswith('#'):
-                    heading_level = len(re.search('^#+', line).group(0))
-                    heading_markdown = line
-                    found_candidate_heading = True
-                elif ((curr_filename_line_number<(len(content_lines)-1)) 
-                    and (content_lines[curr_filename_line_number+1].startswith('---'))):
-                    # H2 in underline markdown style
-                    heading_level = 2
-                    heading_markdown = '## ' + line
-                    found_candidate_heading = True                    
-                    # Skip next line (i.e. the underline)
-                    curr_filename_line_number = curr_filename_line_number + 1                     
-                elif ((curr_filename_line_number<(len(content_lines)-1)) 
-                    and (content_lines[curr_filename_line_number+1].startswith('==='))):
-                    # H1 in underline markdown style
-                    heading_level = 1
-                    heading_markdown = '# ' + line
-                    found_candidate_heading = True
-                    # Skip next line (i.e. the underline)
+                # Start at first nonempty line index
+                curr_filename_line_number = next(i for i, j in enumerate(content_lines) if j)
+                
+                section_id = 1
+                while (curr_filename_line_number<len(content_lines)):
+                    found_candidate_heading = False
+                    line = content_lines[curr_filename_line_number]
+                    
+                    if line.startswith('#'):
+                        heading_level = len(re.search('^#+', line).group(0))
+                        heading_markdown = line
+                        found_candidate_heading = True
+                    elif ((curr_filename_line_number<(len(content_lines)-1)) 
+                        and (content_lines[curr_filename_line_number+1].startswith('---'))):
+                        # H2 in underline markdown style
+                        heading_level = 2
+                        heading_markdown = '## ' + line
+                        found_candidate_heading = True                    
+                        # Skip next line (i.e. the underline)
+                        curr_filename_line_number = curr_filename_line_number + 1                     
+                    elif ((curr_filename_line_number<(len(content_lines)-1)) 
+                        and (content_lines[curr_filename_line_number+1].startswith('==='))):
+                        # H1 in underline markdown style
+                        heading_level = 1
+                        heading_markdown = '# ' + line
+                        found_candidate_heading = True
+                        # Skip next line (i.e. the underline)
+                        curr_filename_line_number = curr_filename_line_number + 1
+                    
                     curr_filename_line_number = curr_filename_line_number + 1
-                
-                curr_filename_line_number = curr_filename_line_number + 1
-                    
-                # If heading is found
-                if found_candidate_heading:
-                    logging.info("Found candidate heading: {0}".format(line))
-                    heading_text = extract_text_in_heading_markdown(heading_markdown)
-                    abstracted_heading_markdown = abstract_text(heading_markdown).replace('\n', ' ').strip()
-                    abstracted_heading_text = extract_text_in_heading_markdown(abstracted_heading_markdown)
-                    
-                    overview = overview.append({'section_id':section_id, 'file_id':file_id, 'url':url, 'local_readme_file':filename, 
-                                        'heading_markdown':heading_markdown,
-                                  'abstracted_heading_markdown':abstracted_heading_markdown, 'heading_text':heading_text, 
-                                  'abstracted_heading_text':abstracted_heading_text,
-                                  'heading_level':heading_level}, ignore_index=True)
-                     
-                    section_id = section_id + 1               
+                        
+                    # If heading is found
+                    if found_candidate_heading:
+                        logging.debug("Found candidate heading: {0}".format(line))
+                        heading_text = extract_text_in_heading_markdown(heading_markdown)
+                        abstracted_heading_markdown = abstract_text(heading_markdown).replace('\n', ' ').strip()
+                        '''
+                        Seems markdowner sometimes don't convert markdown reference-style link into HTML link if given only 1 line
+                        (it gets converted if it's part of the text). Thus, manually apply regex to convert
+                        any remaining markdown link
+                        '''
+                        abstracted_heading_markdown = re.sub('\[(.+)\]\[(.+)\]', r'@abstr_hyperlink', abstracted_heading_markdown)
+                        logging.debug("After abstraction: {0}".format(abstracted_heading_markdown))
+                        abstracted_heading_text = extract_text_in_heading_markdown(abstracted_heading_markdown)
+                        
+                        overview = overview.append({'section_id':section_id, 'file_id':file_id, 'url':url, 'local_readme_file':filename, 
+                                            'heading_markdown':heading_markdown,
+                                      'abstracted_heading_markdown':abstracted_heading_markdown, 'heading_text':heading_text, 
+                                      'abstracted_heading_text':abstracted_heading_text,
+                                      'heading_level':heading_level}, ignore_index=True)
+                         
+                        section_id = section_id + 1  
+            except Exception as e:
+                logging.exception(e)             
         file_id = file_id + 1
     
     conn = sqlite3.connect(db_filename)

@@ -1,20 +1,20 @@
+'''
+Writes processed 'what' and 'why' sections to files with same names as original README files
+'''
 import configparser
 import logging
 import sqlite3
 import pandas
 from sqlite3 import Error
 import time
-import os
-
-
-        
+import os        
 
 if __name__ == '__main__':
     start = time.time()
     config = configparser.ConfigParser()
     config.read('../../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
-    dirname = "./readmes"
+    dirname = "../../output/readmes"
     log_filename = '../../log/write_sections_to_readme_files.log'
     
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
@@ -26,6 +26,7 @@ if __name__ == '__main__':
         SELECT t1.local_readme_file, t1.abstracted_heading_text, t2.content_text_w_o_tags
         FROM target_section_overview t1 JOIN target_section_content t2
         ON t1.file_id = t2.file_id AND t1.section_id = t2.section_id
+        WHERE instr(section_code,'1')
         ORDER BY t1.file_id, t1.section_id
         """
         df = pandas.read_sql_query(con=conn, sql=sql_text)

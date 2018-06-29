@@ -108,12 +108,12 @@ if __name__ == '__main__':
         # Find codes that aren't yet in the README. Omit '-' because we don't need 'Exclusion' sections.
         output_file_completeness['codes_not_in_file'] = output_file_completeness['section_codes_in_file'].apply(lambda x: ','.join(sorted(list(set(['1','3','4','5','6','7','8']) - set(x.split(','))))))
         output_file_completeness.to_csv(output_file_codes_filename, sep=',', index=False)
-        end = time.time()
-        runtime_in_seconds = end - start
-        logging.info('Processing completed in {0}'.format(runtime_in_seconds))
     except Error as e:
         logging.exception(e)
     except Exception as e:
         logging.exception(e)
     finally:
         conn.close()
+    end = time.time()
+    runtime_in_seconds = end - start
+    logging.info('Processing time: {0}'.format(runtime_in_seconds))
