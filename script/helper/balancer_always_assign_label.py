@@ -102,7 +102,7 @@ class OneVsRestClassifierBalanceAlwaysAssignLabel(OneVsRestClassifier):
         return self
     
     def predict(self, X):
-        # Get a [n_samples, n_classes] array with each class probabilites for each samples
+        # Get a [n_samples, n_classes] array with each class probabilities for each samples
         predicted_proba = super().predict_proba(X)
          
         labels = []
@@ -110,18 +110,25 @@ class OneVsRestClassifierBalanceAlwaysAssignLabel(OneVsRestClassifier):
          
         # Iterating over results
         for probs in predicted_proba:
-           labels.append([])
+            labels.append([])
          
-           # Iterating over class probabilities
-           for i in range(len(probs)):
-              if probs[i] >= threshold:
-                 # We add the class
-                 labels[-1].append(i)
+            # Iterating over class probabilities
+            for i in range(len(probs)):
+                if probs[i] >= threshold:
+                    # Add this label to the list at the end of labels
+                    labels[-1].append(i)
+            
+            # If there's no label for whom positive class probability exceeds threshold, assign the label with largest probability
+            if (len(labels[-1]) == 0):
+                max_probs = max(probs)
+                max_index = list(probs).index(max_probs)
+                labels[-1].append(max_index)
         
-        label_set = ['-','1','3','4','5','6','7','8']
-        labels = [str(x).split(',') for x in labels]
-        Y = MultiLabelBinarizer(classes=label_set)
         
-        # DEBUG   
-        print(Y)  
-        return Y 
+        # Transform into matrix representation where each element = array of 0s and 1s.
+        # where the number corresponds to indices [0..7] corresponding to labels [-,1,3,4,5,6,7,8]
+        # E.g. [0] becomes [1 0 0 0 0 0 0 0], [1,3] becomes [0 1 1 0 0 0 0 0]
+        mlb = MultiLabelBinarizer(classes=[0,1,2,3,4,5,6,7])
+        Y = mlb.fit_transform(labels)
+        
+        return Y

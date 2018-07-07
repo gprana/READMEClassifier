@@ -77,11 +77,7 @@ if __name__ == '__main__':
         logging.debug('Combined features shape:')
         logging.debug(features_combined.shape)
 
-        labels_matrix = classifier.predict(features_combined.values)
-        
-        logging.debug(type(labels_matrix))
-        logging.debug(labels_matrix[0])
-        
+        labels_matrix = classifier.predict(features_combined.values)        
         df['section_code'] = [','.join(x) for x in binarizer.inverse_transform(labels_matrix)]
                 
         # Saving probabilities

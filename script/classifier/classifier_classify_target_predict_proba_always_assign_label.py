@@ -32,9 +32,9 @@ if __name__ == '__main__':
     rng_seed = int(config['DEFAULT']['rng_seed'])
     vectorizer = joblib.load(config['DEFAULT']['vectorizer_filename']) 
     binarizer = joblib.load(config['DEFAULT']['binarizer_filename']) 
-    classifier = joblib.load('../../model/model_proba.clf')
-    output_section_code_filename = config['DEFAULT']['output_section_code_filename']
-    output_file_codes_filename = config['DEFAULT']['output_file_codes_filename']
+    classifier = joblib.load('../../model/model_proba_always_assign_label.clf')
+    output_section_code_filename = '../../output/output_section_codes_always_assign_label.csv'
+    output_file_codes_filename = '../../output/output_file_codes_always_assign_label.csv'
     
     log_filename = '../../log/classifier_classify_target_predict_proba.log'    
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
