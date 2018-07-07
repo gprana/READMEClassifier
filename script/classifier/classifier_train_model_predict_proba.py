@@ -27,7 +27,7 @@ if __name__ == '__main__':
     rng_seed = int(config['DEFAULT']['rng_seed'])
     vectorizer_filename = config['DEFAULT']['vectorizer_filename'] 
     binarizer_filename = config['DEFAULT']['binarizer_filename'] 
-    model_filename = config['DEFAULT']['model_filename'] 
+    model_filename = '../../model/model_proba.clf' 
     log_filename = '../../log/classifier_train_model_predict_proba.log'
     
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)

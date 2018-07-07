@@ -32,12 +32,12 @@ if __name__ == '__main__':
     rng_seed = int(config['DEFAULT']['rng_seed'])
     vectorizer = joblib.load(config['DEFAULT']['vectorizer_filename']) 
     binarizer = joblib.load(config['DEFAULT']['binarizer_filename']) 
-    classifier = joblib.load(config['DEFAULT']['model_filename'])
+    classifier = joblib.load('../../model/model_proba.clf')
     output_section_code_filename = config['DEFAULT']['output_section_code_filename']
     output_file_codes_filename = config['DEFAULT']['output_file_codes_filename']
     
     log_filename = '../../log/classifier_classify_target_predict_proba.log'    
-    logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=10)
+    logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
     logging.getLogger().addHandler(logging.StreamHandler())
     
     conn = sqlite3.connect(db_filename)
@@ -78,10 +78,6 @@ if __name__ == '__main__':
         logging.debug(features_combined.shape)
 
         labels_matrix = classifier.predict(features_combined.values)
-        
-        logging.debug(type(labels_matrix))
-        logging.debug(labels_matrix[0])
-        
         df['section_code'] = [','.join(x) for x in binarizer.inverse_transform(labels_matrix)]
                 
         # Saving probabilities
