@@ -12,7 +12,7 @@ from sklearn.cross_validation import cross_val_predict
 from sklearn.metrics import classification_report
 from sklearn.model_selection import cross_val_score
 from script.helper.heuristic2 import *
-from script.helper.balancer import *
+from script.helper.balancer_low_threshold import *
 import time
 import operator
 from sklearn.externals import joblib
@@ -32,12 +32,12 @@ if __name__ == '__main__':
     rng_seed = int(config['DEFAULT']['rng_seed'])
     vectorizer = joblib.load(config['DEFAULT']['vectorizer_filename']) 
     binarizer = joblib.load(config['DEFAULT']['binarizer_filename']) 
-    classifier = joblib.load('../../model/model_proba_always_assign_label.clf')
-    output_section_code_filename = '../../output/output_section_codes_always_assign_label.csv'
-    output_file_codes_filename = '../../output/output_file_codes_always_assign_label.csv'
+    classifier = joblib.load('../../model/model_proba_low_threshold.clf')
+    output_section_code_filename = '../../output/output_section_codes_low_threshold.csv'
+    output_file_codes_filename = '../../output/output_file_codes_low_threshold.csv'
     
-    log_filename = '../../log/classifier_classify_target_predict_proba.log'    
-    logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
+    log_filename = '../../log/classifier_classify_target_predict_proba_low_threshold.log'    
+    logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=10)
     logging.getLogger().addHandler(logging.StreamHandler())
     
     conn = sqlite3.connect(db_filename)
@@ -77,7 +77,7 @@ if __name__ == '__main__':
         logging.debug('Combined features shape:')
         logging.debug(features_combined.shape)
 
-        labels_matrix = classifier.predict(features_combined.values)
+        labels_matrix = classifier.predict(features_combined.values)        
         df['section_code'] = [','.join(x) for x in binarizer.inverse_transform(labels_matrix)]
                 
         # Saving probabilities
@@ -85,7 +85,7 @@ if __name__ == '__main__':
         df_proba1 = df[['local_readme_file','heading_markdown','section_code']].copy()
         df_proba2 = pandas.DataFrame(y_proba, columns=['-','1','3','4','5','6','7','8'])
         df_proba = pandas.concat([df_proba1, df_proba2], axis=1)
-        df_proba.to_csv('../../output/target_proba_always_assign_label.csv', sep=',', index=False)        
+        df_proba.to_csv('../../output/target_proba_low_threshold.csv', sep=',', index=False)        
 
         # Update DB table
         df = df.loc[:,['file_id', 'section_id', 'url', 'local_readme_file', 'heading_markdown', 'abstracted_heading_markdown','heading_text', 'abstracted_heading_text',

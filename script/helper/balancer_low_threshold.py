@@ -1,0 +1,134 @@
+import numpy as np
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.preprocessing import LabelBinarizer
+from joblib import Parallel
+from joblib import delayed
+from sklearn.utils import resample
+from sklearn.utils.validation import check_is_fitted
+from sklearn.base import BaseEstimator, clone
+import warnings
+from sklearn.preprocessing import MultiLabelBinarizer
+
+
+class _ConstantPredictor(BaseEstimator):
+
+    def fit(self, X, y):
+        self.y_ = y
+        return self
+
+    def predict(self, X):
+        check_is_fitted(self, 'y_')
+
+        return np.repeat(self.y_, X.shape[0])
+
+    def decision_function(self, X):
+        check_is_fitted(self, 'y_')
+
+        return np.repeat(self.y_, X.shape[0])
+
+    def predict_proba(self, X):
+        check_is_fitted(self, 'y_')
+
+        return np.repeat([np.hstack([1 - self.y_, self.y_])],
+                         X.shape[0], axis=0)
+
+def _fit_binary(estimator, X, y, classes=None):
+    """Fit a single binary estimator."""
+    unique_y = np.unique(y)
+    if len(unique_y) == 1:
+        if classes is not None:
+            if y[0] == -1:
+                c = 0
+            else:
+                c = y[0]
+            warnings.warn("Label %s is present in all training examples." %
+                          str(classes[c]))
+        estimator = _ConstantPredictor().fit(X, unique_y)
+    else:
+        estimator = clone(estimator)
+        estimator.fit(X, y)
+    return estimator
+
+class OneVsRestClassifierBalanceLowThreshold(OneVsRestClassifier):
+    
+    def fit(self, X, y):
+        self.label_binarizer_ = LabelBinarizer(sparse_output=True)
+        Y = self.label_binarizer_.fit_transform(y)
+        Y = Y.tocsc()
+        self.classes_ = self.label_binarizer_.classes_
+        totalIns = Y.shape[0]
+        XBal = []
+        YBal = []
+        for i in range(len(self.label_binarizer_.classes_)):
+            if len(y.shape)>1:
+                # Matrix
+                curIdxs = Y[:,i].nonzero()[0]
+            else:
+                curIdxs = Y.nonzero()[0]
+            baseX = X[curIdxs,:]
+            if len(y.shape)>1:
+                # Matrix
+                baseY = y[curIdxs,:]
+            else:
+                # array, e.g. due to testing classifier performance for single label prediction
+                baseY = y[curIdxs]
+            tempX = X
+            tempY = y
+            imbalancedIns = baseX.shape[0]
+            numDup = totalIns/imbalancedIns - 1
+            for j in range(int(numDup)):
+                tempX = np.vstack((tempX,baseX))
+                if len(y.shape)>1:
+                    tempY = np.vstack((tempY,baseY))
+                else:
+                    tempY = np.concatenate((tempY, baseY))
+            numAdd = totalIns%imbalancedIns
+            tempX = np.vstack((tempX,resample(baseX,n_samples=numAdd,random_state=0)))
+            if len(y.shape)>1:
+                tempY = np.vstack((tempY,resample(baseY,n_samples=numAdd,random_state=0)))
+            else:
+                tempY = np.concatenate((tempY,resample(baseY,n_samples=numAdd,random_state=0)))
+            XBal.append(tempX)
+            if len(y.shape)>1:
+                YBal.append(tempY[:,i])
+            else:
+                YBal.append(tempY)
+        self.estimators_ = Parallel(n_jobs=self.n_jobs)(delayed(_fit_binary)(
+            self.estimator, XBal[i], YBal[i], classes=[
+                "not %s" % self.label_binarizer_.classes_[i],
+                self.label_binarizer_.classes_[i]])
+            for i in range(len(YBal)))
+            #for i, column in enumerate(columns))
+        return self
+    
+    def predict(self, X):
+        # Get a [n_samples, n_classes] array with each class probabilities for each samples
+        predicted_proba = super().predict_proba(X)
+         
+        labels = []
+        threshold = 0.4
+         
+        # Iterating over results
+        for probs in predicted_proba:
+            labels.append([])
+         
+            # Iterating over class probabilities
+            for i in range(len(probs)):
+                if probs[i] >= threshold:
+                    # Add this label to the list at the end of labels
+                    labels[-1].append(i)
+            
+#             # If there's no label for whom positive class probability exceeds threshold, assign the label with largest probability
+#             if (len(labels[-1]) == 0):
+#                 max_probs = max(probs)
+#                 max_index = list(probs).index(max_probs)
+#                 labels[-1].append(max_index)
+        
+        
+        # Transform into matrix representation where each element = array of 0s and 1s.
+        # where the number corresponds to indices [0..7] corresponding to labels [-,1,3,4,5,6,7,8]
+        # E.g. [0] becomes [1 0 0 0 0 0 0 0], [1,3] becomes [0 1 1 0 0 0 0 0]
+        mlb = MultiLabelBinarizer(classes=[0,1,2,3,4,5,6,7])
+        Y = mlb.fit_transform(labels)
+        
+        return Y
