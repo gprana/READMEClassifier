@@ -168,7 +168,7 @@ def extract_section_from_abstracted_files_v2(temp_abstracted_markdown_file_dir, 
                         logging.info('Found the heading for {0}'.format(heading_markdown))
                         heading_already_found = True
                 elif ((curr_filename_line_number<len(curr_filename_lines)-1) and
-                     curr_filename_lines[curr_filename_line_number+1].startswith('===')):
+                     curr_filename_lines[curr_filename_line_number+1].startswith('==')):
                     # Potential H1, in underline markdown style
                     candidate_heading = curr_filename_lines[curr_filename_line_number].replace('\n',' ').strip() 
                     if (('# ' + candidate_heading) != abstracted_heading_markdown.strip() or heading_already_found):
@@ -180,7 +180,7 @@ def extract_section_from_abstracted_files_v2(temp_abstracted_markdown_file_dir, 
                         logging.info('Found the heading for {0}'.format(heading_markdown)) 
                         heading_already_found = True
                 elif ((curr_filename_line_number<len(curr_filename_lines)-1) and 
-                     curr_filename_lines[curr_filename_line_number+1].startswith('---')):
+                     curr_filename_lines[curr_filename_line_number+1].startswith('--')):
                     # Potential H2, in underline markdown style
                     candidate_heading = curr_filename_lines[curr_filename_line_number].replace('\n',' ').strip() 
                     if (('## ' + candidate_heading) != abstracted_heading_markdown.strip() or heading_already_found):

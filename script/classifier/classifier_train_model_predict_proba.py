@@ -25,8 +25,8 @@ if __name__ == '__main__':
     config.read('../../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
     rng_seed = int(config['DEFAULT']['rng_seed'])
-    vectorizer_filename = config['DEFAULT']['vectorizer_filename'] 
-    binarizer_filename = config['DEFAULT']['binarizer_filename'] 
+    vectorizer_filename = '../../model/vectorizer_proba.clf' 
+    binarizer_filename = '../../model/binarizer_proba.clf'  
     model_filename = '../../model/model_proba.clf' 
     log_filename = '../../log/classifier_train_model_predict_proba.log'
     

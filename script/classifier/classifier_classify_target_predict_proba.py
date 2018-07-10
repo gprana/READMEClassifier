@@ -30,11 +30,11 @@ if __name__ == '__main__':
     config.read('../../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
     rng_seed = int(config['DEFAULT']['rng_seed'])
-    vectorizer = joblib.load(config['DEFAULT']['vectorizer_filename']) 
-    binarizer = joblib.load(config['DEFAULT']['binarizer_filename']) 
-    classifier = joblib.load(config['DEFAULT']['model_filename'])
-    output_section_code_filename = config['DEFAULT']['output_section_code_filename']
-    output_file_codes_filename = config['DEFAULT']['output_file_codes_filename']
+    vectorizer = joblib.load('../../model/vectorizer_proba.clf') 
+    binarizer = joblib.load('../../model/binarizer_proba.clf' ) 
+    classifier = joblib.load('../../model/model_proba.clf')
+    output_section_code_filename = '../../output/output_section_codes_proba.csv'
+    output_file_codes_filename = '../../output/output_file_codes_proba.csv'
     
     log_filename = '../../log/classifier_classify_target_predict_proba.log'    
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=10)
