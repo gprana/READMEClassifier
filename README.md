@@ -1,7 +1,7 @@
 # GitHub README Content Classifier
 
 ## What
-This project contains the source code of GitHub README content classifier from "Categorizing the Content of GitHub README Files" (Gede Artha Azriadi Prana, Christoph Treude, Ferdian Thung, Thushari Atapattu, David Lo).
+This project contains the source code of GitHub README content classifier from the paper "Categorizing the Content of GitHub README Files" (Gede Artha Azriadi Prana, Christoph Treude, Ferdian Thung, Thushari Atapattu, David Lo), published in 2018 in Empirical Software Engineering. DOI: [10.1007/s10664-018-9660-3](https://link.springer.com/article/10.1007%2Fs10664-018-9660-3)
 
 ## How to Use
 This project is written in Python 3.
