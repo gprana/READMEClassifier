@@ -13,7 +13,7 @@ This project is written in Python 3.
 4. Run `script/loading/load_section_dataset_75pct.py` to extract and load section overview (title text, labels) and content of evaluation set into database. 
 5. Run the `script/experiment/*` scripts as required. E.g. `script/experiment/classifier_75pct_tfidf.py` for the SVM version.
 
-### Training Model on Existing Data and CLassifying New Files
+### Training Model on Existing Data and Classifying New Files
 1. Run `script/classifier/load_combined_set_and_train_model` to extract and load contents and titles listed in combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database.
 2. Run `script/classifier/load_and_classify_target` to extract and load contents of the README files in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`.
 3. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
