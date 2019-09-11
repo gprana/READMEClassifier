@@ -4,7 +4,7 @@
 This project contains the source code of GitHub README content classifier from the paper "Categorizing the Content of GitHub README Files" (Gede Artha Azriadi Prana, Christoph Treude, Ferdian Thung, Thushari Atapattu, David Lo), published in 2018 in Empirical Software Engineering. DOI: [10.1007/s10664-018-9660-3](https://link.springer.com/article/10.1007%2Fs10664-018-9660-3)
 
 ## How to Use
-This project is written in Python 3.
+This project is written in Python 3. It also uses SQLite to store intermediary data during processing. By default the database is  `database/data.db`.
 
 ### Cross-validation Experiments
 1. Set up file paths in `config/config.cfg`. By default, CSV files listing the section titles and their labels are in `input/`. `dataset_1.csv` contains the section titles and labels for the development set, whereas `dataset_2.csv` contains the section titles and labels for the evaluation set. The README files corresponding to the CSV files are in `input/ReadMes/` directory. 
@@ -21,7 +21,8 @@ This project is written in Python 3.
 4. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
 
 ### Training Model on Existing Data and Classifying New Files (More Detailed Breakdown)
-The scripts used in the previous section automates multiple steps of the workflow to make usage simpler. If you want more detailed step-by-step breakdown, please use the following steps. 
+The scripts used in the previous section automates multiple steps of the workflow to make usage simpler. If you want more detailed step-by-step breakdown, please use the following steps.
+
 #### Training Model Using Existing Data
 1. Run `script/loading/load_section_dataset_combined.py` to extract and load section overview (title text, labels) and content of combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database. 
 2. Run `script/classifier/classifier_train_model.py`. This script will train SVM model using combined dataset in `*combined` tables. The resulting model, TFIDF vectorizer, and matrix label binarizer will be saved in `model/` directory.
