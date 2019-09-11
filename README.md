@@ -13,23 +13,23 @@ The following sections describe three use cases and the steps to follow for each
 2. Empty all database tables by running the script `script/loading/empty_all_tables.py`
 3. Run `script/loading/load_section_dataset_25pct.py` to extract and load section overview (title text, labels) and content of development set into database.
 4. Run `script/loading/load_section_dataset_75pct.py` to extract and load section overview (title text, labels) and content of evaluation set into database. 
-5. Run the `script/experiment/*` scripts as required. E.g. `script/experiment/classifier_75pct_tfidf.py` for the SVM version. 
+5. Run the `script/experiment/*` scripts as required. E.g. to run cross-validation on the best-performing SVM version, run `script/experiment/classifier_75pct_tfidf.py`. 
 
 Note that `25pct` and `75pct` in script names refer to development and evaluation sets, respectively. Before running an experiment, please ensure that you've loaded the correct set.
 
 ### Use Case 2: Training Model on Existing Data and Classifying New Files
-1. Run `script/classifier/load_combined_set_and_train_model` to extract and load contents and titles listed in combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database.
+1. Run `script/classifier/load_combined_set_and_train_model` to extract and load contents and titles listed in combined development and evaluation sets into the database. This script by default reads `dataset_combined.csv` for section heading and labels, and the README files in `input/ReadMes/` directory for the section contents. 
 2. Download the new README file(s) whose sections are to be labeled into a directory.
 3. Open configuration file of the classifier (`config/config.cfg`), and edit the `target_readme_file_dir` variable to point to the location of the README file(s) to be labeled.
-3. Run `script/classifier/load_and_classify_target` to extract contents of the new README files, load the section contents, and perform classification.
-4. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
+4. Run `script/classifier/load_and_classify_target` to extract contents of the new README files, load the section contents, and perform classification.
+5. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
 
 ### Use Case 3: Training Model on Existing Data and Classifying New Files (More Detailed Breakdown)
 Each script used in the previous section automates multiple steps in the workflow to make usage simpler. If you want more detailed breakdown, e.g. to facilitate evaluation of intermediary result after each step in the workflow, please use the following steps.
 
 #### Training Model Using Existing Data
-1. Run `script/loading/load_section_dataset_combined.py` to extract and load section overview (title text, labels) and content of combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database. 
-2. Run `script/classifier/classifier_train_model.py`. This script will train SVM model using combined dataset in `*combined` tables. The resulting model, TFIDF vectorizer, and matrix label binarizer will be saved in `model/` directory.
+1. Run `script/loading/load_section_dataset_combined.py`. This script extracts and loads section overview (title text, labels) from CSV file containing complete set of section headings and labels. In `config/config.cfg`, this CSV file is specified as `dataset_combined.csv` by default. The script also loads section content of the associated README files. All these data are subsequently stored in tables with name ending in `combined` in the database.
+2. Run `script/classifier/classifier_train_model.py`. This script will train SVM model using the data in `*combined` database tables. The resulting model, TFIDF vectorizer, and matrix label binarizer will be saved in `model/` directory.
 #### Loading New File
 3. Download the new README file(s) whose sections are to be labeled into a directory.
 4. Open configuration file of the classifier (`config/config.cfg`), and edit the `target_readme_file_dir` variable to point to the location of the README file(s) to be labeled.
