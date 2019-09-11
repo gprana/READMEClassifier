@@ -15,16 +15,23 @@ This project is written in Python 3.
 
 ### Training Model on Existing Data and Classifying New Files
 1. Run `script/classifier/load_combined_set_and_train_model` to extract and load contents and titles listed in combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database.
-2. Run `script/classifier/load_and_classify_target` to extract and load contents of the README files in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`.
-3. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
+2. Download the new README file(s) whose sections are to be labeled into a directory.
+3. Open configuration file of the classifier (`config/config.cfg`), and edit the `target_readme_file_dir` variable to point to the location of the README file(s) to be labeled.
+3. Run `script/classifier/load_and_classify_target` to extract and load contents of the README files.
+4. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
 
-### Training Model on Existing Data and Classifying New Files (Partial Steps)
+### Training Model on Existing Data and Classifying New Files (More Detailed Breakdown)
+The scripts used in the previous section automates multiple steps of the workflow to make usage simpler. If you want more detailed step-by-step breakdown, please use the following steps. 
+#### Training Model Using Existing Data
 1. Run `script/loading/load_section_dataset_combined.py` to extract and load section overview (title text, labels) and content of combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database. 
-2. Place the README files whose sections are to be classified in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`.
-3. Run `script/loading/load_target_section_data.py` to load the section heading and content data into database.
-4. Run `script/classifier/classifier_train_model.py`. This script will train SVM model using combined dataset in `*combined` tables. The resulting model, TFIDF vectorizer, and matrix label binarizer will be saved in `model/` directory.
-5. Run `script/classifier/classifier_classify_target.py`. This script will use the saved model, vectorizer, and binarizer to classify target README files in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`. 
-6. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
+2. Run `script/classifier/classifier_train_model.py`. This script will train SVM model using combined dataset in `*combined` tables. The resulting model, TFIDF vectorizer, and matrix label binarizer will be saved in `model/` directory.
+#### Loading New File
+3. Download the new README file(s) whose sections are to be labeled into a directory.
+4. Open configuration file of the classifier (`config/config.cfg`), and edit the `target_readme_file_dir` variable to point to the location of the README file(s) to be labeled.
+5. Run `script/loading/load_target_section_data.py` to load the section heading and content data into database.
+#### Classifying Sections in the New File
+6. Run `script/classifier/classifier_classify_target.py`. This script will use the saved model, vectorizer, and binarizer to classify target README files in the directory specified in `target_readme_file_dir` variable in `config/config.cfg`. 
+7. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
 
 ## Notes
 All scripts will log output (such as F1 score, execution times) into `log/` directory. Preprocessed README files (with numbers, `mailto:` links etc. abstracted out) are saved in `temp/` directory. Patterns used for heuristics are listed in `doc/Patterns.ods`.
