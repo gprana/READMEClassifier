@@ -17,7 +17,7 @@ This project is written in Python 3.
 1. Run `script/classifier/load_combined_set_and_train_model` to extract and load contents and titles listed in combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database.
 2. Download the new README file(s) whose sections are to be labeled into a directory.
 3. Open configuration file of the classifier (`config/config.cfg`), and edit the `target_readme_file_dir` variable to point to the location of the README file(s) to be labeled.
-3. Run `script/classifier/load_and_classify_target` to extract and load contents of the README files.
+3. Run `script/classifier/load_and_classify_target` to extract contents of the new README files, load the section contents, and perform classification.
 4. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
 
 ### Training Model on Existing Data and Classifying New Files (More Detailed Breakdown)
