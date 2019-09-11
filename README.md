@@ -11,7 +11,9 @@ This project is written in Python 3. It also uses SQLite to store intermediary d
 2. Empty all database tables by running the script `script/loading/empty_all_tables.py`
 3. Run `script/loading/load_section_dataset_25pct.py` to extract and load section overview (title text, labels) and content of development set into database.
 4. Run `script/loading/load_section_dataset_75pct.py` to extract and load section overview (title text, labels) and content of evaluation set into database. 
-5. Run the `script/experiment/*` scripts as required. E.g. `script/experiment/classifier_75pct_tfidf.py` for the SVM version.
+5. Run the `script/experiment/*` scripts as required. E.g. `script/experiment/classifier_75pct_tfidf.py` for the SVM version. 
+
+Note that `25pct` and `75pct` in script names refer to development and evaluation sets, respectively. Before running an experiment, please ensure that you've loaded the correct set.
 
 ### Training Model on Existing Data and Classifying New Files
 1. Run `script/classifier/load_combined_set_and_train_model` to extract and load contents and titles listed in combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database.
