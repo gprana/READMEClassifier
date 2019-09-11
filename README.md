@@ -23,7 +23,7 @@ Note that `25pct` and `75pct` in script names refer to development and evaluatio
 4. By default, the resulting section labels will be saved in `output/output_section_codes.csv`. Classifier will also identify which codes exist for each file, and which codes don't yet exist (i.e. potential for README expansion). This information will be saved in `output/output_file_codes.csv`
 
 ### Training Model on Existing Data and Classifying New Files (More Detailed Breakdown)
-The scripts used in the previous section automates multiple steps of the workflow to make usage simpler. If you want more detailed step-by-step breakdown, please use the following steps.
+Each script used in the previous section automates multiple steps in the workflow to make usage simpler. If you want more detailed breakdown, e.g. to facilitate evaluation of intermediary result after each step in the workflow, please use the following steps.
 
 #### Training Model Using Existing Data
 1. Run `script/loading/load_section_dataset_combined.py` to extract and load section overview (title text, labels) and content of combined development and evaluation sets (by default, defined as `dataset_combined.csv` in `config/config.cfg`) into the database. 
