@@ -6,7 +6,9 @@ This project contains the source code of GitHub README content classifier from t
 ## How to Use
 This project is written in Python 3. It also uses SQLite to store intermediary data during processing. By default the database is  `database/data.db`.
 
-### Cross-validation Experiments
+The following sections describe three usage scenarios and the steps to follow for each scenario.
+
+### Running Cross-validation Experiments
 1. Set up file paths in `config/config.cfg`. By default, CSV files listing the section titles and their labels are in `input/`. `dataset_1.csv` contains the section titles and labels for the development set, whereas `dataset_2.csv` contains the section titles and labels for the evaluation set. The README files corresponding to the CSV files are in `input/ReadMes/` directory. 
 2. Empty all database tables by running the script `script/loading/empty_all_tables.py`
 3. Run `script/loading/load_section_dataset_25pct.py` to extract and load section overview (title text, labels) and content of development set into database.
