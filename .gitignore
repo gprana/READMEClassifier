@@ -1,0 +1,4 @@
+log/*
+model/*
+script/__pycache__/*
+temp/*

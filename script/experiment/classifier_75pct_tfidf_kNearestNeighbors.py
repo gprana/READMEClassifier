@@ -8,7 +8,7 @@ from sqlite3 import Error
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MultiLabelBinarizer
-from sklearn.cross_validation import cross_val_predict
+from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import classification_report
 from sklearn.model_selection import cross_val_score
 from script.helper.heuristic2 import *
