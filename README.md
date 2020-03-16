@@ -3,9 +3,14 @@
 ## What
 This project contains the source code of GitHub README content classifier from the paper "Categorizing the Content of GitHub README Files" (Gede Artha Azriadi Prana, Christoph Treude, Ferdian Thung, Thushari Atapattu, David Lo), published in 2018 in Empirical Software Engineering. DOI: [10.1007/s10664-018-9660-3](https://link.springer.com/article/10.1007%2Fs10664-018-9660-3)
 
-## How to Use
+## Setup
 This project is written in Python 3. It also uses SQLite to store intermediary data during processing. By default the database is  `database/data.db`.
 
+The code requires creation of some directories for logging and temporary file storage. Please create these prior to running the scripts:
+1. `log/`
+2. `temp/abstracted_markdown/`
+
+## How to Use
 The following sections describe three use cases and the steps to follow for each scenario.
 
 ### Use Case 1: Running Cross-validation Experiments
