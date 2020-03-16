@@ -9,6 +9,8 @@ This project is written in Python 3. It also uses SQLite to store intermediary d
 The code requires creation of some directories for logging and temporary file storage. Please create these prior to running the scripts:
 1. `log/`
 2. `temp/abstracted_markdown/`
+3. `temp/abstracted_html/`
+4. `temp/target_abstracted_markdown/`
 
 ## How to Use
 The following sections describe three use cases and the steps to follow for each scenario.
