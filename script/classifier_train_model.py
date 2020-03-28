@@ -6,38 +6,44 @@ import numpy as np
 import sqlite3
 from sqlite3 import Error
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import LinearSVC
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import classification_report
 from sklearn.model_selection import cross_val_score
-from script.helper.heuristic2 import *
-from script.helper.balancer import *
+from helper import heuristic2
+from helper import balancer
 import time
 import operator
+from sklearn.externals import joblib
 
 if __name__ == '__main__':
     start = time.time()
     
     config = configparser.ConfigParser()
-    config.read('../../config/config.cfg')
+    config.read('../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
     rng_seed = int(config['DEFAULT']['rng_seed'])
-    log_filename = '../../log/classifier_75pct_tfidf_gaussiannaivebayes.log'
+    vectorizer_filename = config['DEFAULT']['vectorizer_filename'] 
+    binarizer_filename = config['DEFAULT']['binarizer_filename'] 
+    model_filename = config['DEFAULT']['model_filename'] 
+    log_filename = '../log/classifier_train_model.log'
     
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
     logging.getLogger().addHandler(logging.StreamHandler())
     
     conn = sqlite3.connect(db_filename)
     try:
-        sql_text = """
+        sql_text1 = """
         SELECT t1.file_id, t1.section_id, t1.url, t1.heading_text, t2.content_text_w_o_tags, 
         t1.abstracted_heading_text || ' ' || t2.content_text_w_o_tags AS abstracted_heading_plus_content, 
         t1.section_code
-        FROM section_overview_75pct t1 
-        JOIN section_content_75pct t2 ON t1.file_id=t2.file_id AND t1.section_id=t2.section_id
+        FROM section_overview_combined t1 
+        JOIN section_content_combined t2 
+        ON t1.file_id=t2.file_id AND t1.section_id=t2.section_id
         """
-        df = pandas.read_sql_query(con=conn, sql=sql_text)
+        df = pandas.read_sql_query(con=conn, sql=sql_text1)
+        
         df_randomized_order = df.sample(frac=1, random_state=rng_seed)
         heading_plus_content_corpus = df_randomized_order['abstracted_heading_plus_content']
         content_corpus = df_randomized_order['content_text_w_o_tags']
@@ -58,7 +64,7 @@ if __name__ == '__main__':
         
         # Derive features from heading text and content
         logging.info('Deriving features')
-        derived_features = derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
+        derived_features = heuristic2.derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
                 
         logging.info('Derived features shape:')
         logging.info(derived_features.shape)
@@ -71,17 +77,16 @@ if __name__ == '__main__':
         logging.info('Combined features shape:')
         logging.info(features_combined.shape)
         
-        svm_object = GaussianNB() 
-        classifier = OneVsRestClassifierBalance(svm_object)
-
-        logging.info('Getting per-class scores')
-        y_pred = cross_val_predict(classifier, features_combined.values, labels_matrix, cv=10)
-        
-        logging.info('Computing overall results')       
-        scores_f1 = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='f1_weighted').mean()
-        
-        logging.info(classification_report(labels_matrix, y_pred, digits=3))
-        logging.info('f1_weighted : {0}'.format(scores_f1))
+        svm_object = LinearSVC() 
+        classifier = balancer.OneVsRestClassifierBalance(svm_object)
+        logging.info('Training classifier')
+        classifier.fit(features_combined.values, labels_matrix) 
+        logging.info('Saving TFIDF vectorizer')
+        joblib.dump(tfidf, vectorizer_filename)
+        logging.info('Saving binarizer')
+        joblib.dump(mlb, binarizer_filename)
+        logging.info('Saving model')
+        joblib.dump(classifier, model_filename)
                 
         end = time.time()
         runtime_in_seconds = end - start

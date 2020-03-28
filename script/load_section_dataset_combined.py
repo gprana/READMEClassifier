@@ -1,19 +1,19 @@
 import configparser
-from script.helper.helper2 import *
+from helper.helper2 import *
 import logging
-from script.helper.extractor import *
+from helper.extractor import *
 import time
         
 if __name__ == '__main__':
     start = time.time()
     
     config = configparser.ConfigParser()
-    config.read('../../config/config.cfg')
+    config.read('../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
     input_filename_csv = config['DEFAULT']['section_overview_combined_filename']
     readme_file_dir = config['DEFAULT']['readme_file_dir']
     temp_abstracted_markdown_file_dir = config['DEFAULT']['temp_abstracted_markdown_file_dir']
-    log_filename = '../../log/load_section_dataset_combined.log'
+    log_filename = '../log/load_section_dataset_combined.log'
     
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
     logging.getLogger().addHandler(logging.StreamHandler())

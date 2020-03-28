@@ -5,19 +5,12 @@ from pandas import DataFrame
 import numpy as np
 import sqlite3
 from sqlite3 import Error
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
-from sklearn.preprocessing import MultiLabelBinarizer
-from sklearn.cross_validation import cross_val_predict
-from sklearn.metrics import classification_report
-from sklearn.model_selection import cross_val_score
-from script.helper.heuristic2 import *
-from script.helper.balancer import *
+from helper import heuristic2
+from helper import balancer
 import time
 import operator
 from sklearn.externals import joblib
 from win32com.test.testall import output_checked_programs
-from script.helper.extractor import *
 
 def find_unique(csv_input_line):
     l = list(set(csv_input_line.split(',')))
@@ -28,32 +21,19 @@ if __name__ == '__main__':
     start = time.time()
     
     config = configparser.ConfigParser()
-    config.read('../../config/config.cfg')
+    config.read('../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
     rng_seed = int(config['DEFAULT']['rng_seed'])
     vectorizer = joblib.load(config['DEFAULT']['vectorizer_filename']) 
     binarizer = joblib.load(config['DEFAULT']['binarizer_filename']) 
     classifier = joblib.load(config['DEFAULT']['model_filename'])
-    readme_file_dir = config['DEFAULT']['target_readme_file_dir']
-    temp_abstracted_markdown_file_dir = config['DEFAULT']['temp_target_abstracted_markdown_file_dir']
     output_section_code_filename = config['DEFAULT']['output_section_code_filename']
     output_file_codes_filename = config['DEFAULT']['output_file_codes_filename']
     
-    log_filename = '../../log/load_and_classify_target.log'    
+    log_filename = '../log/classifier_classify_target.log'    
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
     logging.getLogger().addHandler(logging.StreamHandler())
     
-    # Extract heading
-    overview = extract_headings_from_files_in_directory(readme_file_dir, db_filename, 'target_section_overview')    
-    
-    filenames = retrieve_readme_filenames_from_db(db_filename, 'target_section_overview')
-    delete_existing_section_content_data(temp_abstracted_markdown_file_dir, db_filename, 'target_section_content')
-    abstract_out_markdown(filenames, readme_file_dir, temp_abstracted_markdown_file_dir)
-    extract_section_from_abstracted_files_v2(temp_abstracted_markdown_file_dir, db_filename, 'target_section_overview','target_section_content')
-    
-    '''
-    Classifier part
-    '''
     conn = sqlite3.connect(db_filename)
     try:
         sql_text = """
@@ -79,7 +59,7 @@ if __name__ == '__main__':
         
         # Derive features from heading text and content
         logging.info('Deriving features')
-        derived_features = derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
+        derived_features = heuristic2.derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
                 
         logging.debug('Derived features shape:')
         logging.debug(derived_features.shape)
@@ -108,12 +88,12 @@ if __name__ == '__main__':
         # Find codes that aren't yet in the README. Omit '-' because we don't need 'Exclusion' sections.
         output_file_completeness['codes_not_in_file'] = output_file_completeness['section_codes_in_file'].apply(lambda x: ','.join(sorted(list(set(['1','3','4','5','6','7','8']) - set(x.split(','))))))
         output_file_completeness.to_csv(output_file_codes_filename, sep=',', index=False)
+        end = time.time()
+        runtime_in_seconds = end - start
+        logging.info('Processing completed in {0}'.format(runtime_in_seconds))
     except Error as e:
         logging.exception(e)
     except Exception as e:
         logging.exception(e)
     finally:
         conn.close()
-    end = time.time()
-    runtime_in_seconds = end - start
-    logging.info('Processing time: {0}'.format(runtime_in_seconds))

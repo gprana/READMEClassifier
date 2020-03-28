@@ -11,8 +11,8 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import classification_report
 from sklearn.model_selection import cross_val_score
-from script.helper.heuristic2 import *
-from script.helper.balancer import *
+from helper import heuristic2
+from helper import balancer
 import time
 import operator
 
@@ -20,10 +20,10 @@ if __name__ == '__main__':
     start = time.time()
     
     config = configparser.ConfigParser()
-    config.read('../../config/config.cfg')
+    config.read('../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
     rng_seed = int(config['DEFAULT']['rng_seed'])
-    log_filename = '../../log/classifier_75pct_tfidf.log'
+    log_filename = '../log/classifier_75pct_tfidf_only_heuristic.log'
     
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
     logging.getLogger().addHandler(logging.StreamHandler())
@@ -50,41 +50,28 @@ if __name__ == '__main__':
         mlb = MultiLabelBinarizer(classes=label_set)
         labels_matrix = mlb.fit_transform(labels)
         
-        tfidf = TfidfVectorizer(ngram_range=(1,1), analyzer='word', stop_words='english')
-        tfidfX = tfidf.fit_transform(heading_plus_content_corpus)
-        
-        logging.info('tfidf matrix shape: ')  
-        logging.info(tfidfX.shape)
-        
         # Derive features from heading text and content
         logging.info('Deriving features')
-        derived_features = derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
+        derived_features = heuristic2.derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
                 
         logging.info('Derived features shape:')
         logging.info(derived_features.shape)
                 
-        features_tfidf = pandas.DataFrame(tfidfX.todense())
-        # Assign column names to make it easier to print most useful features later
-        features_tfidf.columns = tfidf.get_feature_names()
-        features_combined = pandas.concat([features_tfidf, derived_features], axis=1)
+        features_combined = derived_features
         
         logging.info('Combined features shape:')
         logging.info(features_combined.shape)
         
         svm_object = LinearSVC() 
-        classifier = OneVsRestClassifierBalance(svm_object)
+        classifier = balancer.OneVsRestClassifierBalance(svm_object)
 
         logging.info('Getting per-class scores')
         y_pred = cross_val_predict(classifier, features_combined.values, labels_matrix, cv=10)
         
         logging.info('Computing overall results')
-        scores_precision = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='precision_weighted').mean()
-        scores_recall = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='recall_weighted').mean()        
         scores_f1 = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='f1_weighted').mean()
         
         logging.info(classification_report(labels_matrix, y_pred, digits=3))
-        logging.info('precision_weighted : {0}'.format(scores_precision))
-        logging.info('recall_weighted : {0}'.format(scores_recall))
         logging.info('f1_weighted : {0}'.format(scores_f1))
 
         logging.info('Determining most significant feature for each label')

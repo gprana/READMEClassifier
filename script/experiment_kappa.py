@@ -1,3 +1,8 @@
+'''
+Experiment to measure Kappa
+@author: gprana
+'''
+
 import configparser
 import logging
 import pandas
@@ -11,8 +16,8 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import classification_report
 from sklearn.model_selection import cross_val_score
-from script.helper.heuristic2 import *
-from script.helper.balancer import *
+from helper import heuristic2
+from helper import balancer
 import time
 import operator
 
@@ -38,10 +43,10 @@ class kappa_scorer:
 if __name__ == '__main__':
     start = time.time()
     config = configparser.ConfigParser()
-    config.read('../../config/config.cfg')
+    config.read('../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
     rng_seed = int(config['DEFAULT']['rng_seed'])
-    log_filename = '../../log/classifier_75pct_tfidf.log'
+    log_filename = '../log/experiment_kappa.log'
     
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
     logging.getLogger().addHandler(logging.StreamHandler())
@@ -76,7 +81,7 @@ if __name__ == '__main__':
         
         # Derive features from heading text and content
         logging.info('Deriving features')
-        derived_features = derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
+        derived_features = heuristic2.derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
                 
         logging.info('Derived features shape:')
         logging.info(derived_features.shape)
@@ -90,31 +95,12 @@ if __name__ == '__main__':
         logging.info(features_combined.shape)
         
         svm_object = LinearSVC() 
-        classifier = OneVsRestClassifierBalance(svm_object)
-
-#         logging.info('Getting per-class scores')
-#         y_pred = cross_val_predict(classifier, features_combined.values, labels_matrix, cv=10)
+        classifier = balancer.OneVsRestClassifierBalance(svm_object)
         
-        logging.info('Computing overall results')
-#         scores_precision = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='precision_weighted').mean()
-#         scores_recall = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring='recall_weighted').mean()        
+        logging.info('Computing overall results')        
         scores_kappa = cross_val_score(classifier, features_combined.values, labels_matrix, cv=10, scoring=kappa_scorer()).mean()
         
-#         logging.info(classification_report(labels_matrix, y_pred, digits=3))
-#         logging.info('precision_weighted : {0}'.format(scores_precision))
-#         logging.info('recall_weighted : {0}'.format(scores_recall))
         logging.info('Kappa : {0}'.format(scores_kappa))
-
-#         logging.info('Determining most significant feature for each label')
-#         for idx in range(0,len(label_set)):
-#             target = [entry[idx] for entry in labels_matrix]
-#             svm_object.fit(features_combined.values, target)
-#             list_of_coef = list(zip(list(svm_object.coef_[0]), list(features_combined)))
-#             list_of_coef.sort(key=operator.itemgetter(0), reverse=True)
-#             top_list_of_coef = list_of_coef[:10]
-#             logging.info('Most significant features for class ''{0}'':'.format(label_set[idx]))
-#             for x,y in top_list_of_coef:
-#                 logging.info('{0},{1}'.format(x,y))    
                 
         end = time.time()
         runtime_in_seconds = end - start

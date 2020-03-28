@@ -1,5 +1,5 @@
 import logging
-from script.helper.helper2 import *
+from helper.helper2 import *
 import sqlite3
 from sqlite3 import Error
 import sys
@@ -359,7 +359,9 @@ def load_section_overview_from_csv(input_filename_csv, db_filename, target_overv
         conn.close()
         
 def delete_existing_section_content_data(temp_abstracted_markdown_file_dir, db_filename, section_content_table_name):
-    if (not temp_abstracted_markdown_file_dir.startswith('../../temp')):
+    if (not temp_abstracted_markdown_file_dir.startswith('../temp')):
+        # Not a temp directory? Terminate script instead of deleting wrong directory tree
+        logging.info(f'Temp directory name {temp_abstracted_markdown_file_dir} does not appear to be correct')
         logging.info('Please ensure that temp_abstracted_markdown_file_dir config variable is set correctly')
         sys.exit()
     else:

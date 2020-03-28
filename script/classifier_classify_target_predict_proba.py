@@ -1,18 +1,11 @@
 import configparser
 import logging
 import pandas
-from pandas import DataFrame
-import numpy as np
 import sqlite3
 from sqlite3 import Error
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
 from sklearn.preprocessing import MultiLabelBinarizer
-from sklearn.cross_validation import cross_val_predict
-from sklearn.metrics import classification_report
-from sklearn.model_selection import cross_val_score
-from script.helper.heuristic2 import *
-from script.helper.balancer import *
+from helper import heuristic2
+from helper import balancer
 import time
 import operator
 from sklearn.externals import joblib
@@ -27,7 +20,7 @@ if __name__ == '__main__':
     start = time.time()
     
     config = configparser.ConfigParser()
-    config.read('../../config/config.cfg')
+    config.read('../config/config.cfg')
     db_filename = config['DEFAULT']['db_filename']
     rng_seed = int(config['DEFAULT']['rng_seed'])
     vectorizer = joblib.load(config['DEFAULT']['vectorizer_filename']) 
@@ -36,7 +29,7 @@ if __name__ == '__main__':
     output_section_code_filename = config['DEFAULT']['output_section_code_filename']
     output_file_codes_filename = config['DEFAULT']['output_file_codes_filename']
     
-    log_filename = '../../log/classifier_classify_target_predict_proba.log'    
+    log_filename = '../log/classifier_classify_target_predict_proba.log'    
     logging.basicConfig(handlers=[logging.FileHandler(log_filename, 'w+', 'utf-8')], level=20)
     logging.getLogger().addHandler(logging.StreamHandler())
     
@@ -65,7 +58,7 @@ if __name__ == '__main__':
         
         # Derive features from heading text and content
         logging.info('Deriving features')
-        derived_features = derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
+        derived_features = heuristic2.derive_features_using_heuristics(url_corpus, heading_text_corpus, content_corpus)
                 
         logging.debug('Derived features shape:')
         logging.debug(derived_features.shape)
@@ -85,7 +78,7 @@ if __name__ == '__main__':
         df_proba1 = df[['local_readme_file','heading_markdown','section_code']].copy()
         df_proba2 = pandas.DataFrame(y_proba, columns=['-','1','3','4','5','6','7','8'])
         df_proba = pandas.concat([df_proba1, df_proba2], axis=1)
-        df_proba.to_csv('../../output/target_proba.csv', sep=',', index=False)        
+        df_proba.to_csv('../output/target_proba.csv', sep=',', index=False)        
 
         # Update DB table
         df = df.loc[:,['file_id', 'section_id', 'url', 'local_readme_file', 'heading_markdown', 'abstracted_heading_markdown','heading_text', 'abstracted_heading_text',
