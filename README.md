@@ -13,6 +13,7 @@ The code requires creation of some directories for logging and temporary file st
 4. `temp/target_abstracted_markdown/`
 
 If you want to train a model using provided dataset to predict labels in new file that's not in the set, you'll also need to create the following directories:
+
 5. `model/`. Used by `classifier_train_model.py` to save result of training. `classifier_classify_target.py` loads model saved in this directory for classifying sections in user-provided README file.
 6. `input/clf_target_readmes/`. The default place to store README files whose section labels are to be predicted.
 7. `output/`. Used by `classifier_classify_target.py` saves its resulting labels here.
