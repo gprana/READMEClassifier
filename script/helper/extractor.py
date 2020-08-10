@@ -97,7 +97,7 @@ def extract_section_from_abstracted_files(temp_abstracted_markdown_file_dir, db_
             # logging.debug(curr_section_content)
             # logging.debug('After markdown removal')
             # logging.debug(curr_section_content_w_o_tags)
-            headings.set_value(i,'content_text_w_o_tags',curr_section_content_w_o_tags)
+            headings.loc[i,'content_text_w_o_tags'] = curr_section_content_w_o_tags
         
         df_to_save = headings[['file_id','section_id','content_text_w_o_tags']]
         df_to_save.to_sql(name=content_table, con=conn, if_exists='replace', index=False)
@@ -324,10 +324,8 @@ def load_section_overview_from_csv(input_filename_csv, db_filename, target_overv
     df = pandas.read_csv(input_filename_csv, header=0, delimiter=',',
                      names=['section_id','file_id','url','heading_markdown','section_code'])
     
-    if sys.stdout.encoding != 'utf-8':
-        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
-    if sys.stderr.encoding != 'utf-8':
-        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
     
     readme_file_generator = lambda x: x.replace('https://github.com/','').replace('/','.') + '.md'
     df['local_readme_file'] = df['url'].apply(readme_file_generator) 
