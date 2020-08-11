@@ -3,3 +3,4 @@ model/*
 script/__pycache__/*
 script/helper/__pycache__/*
 temp/*
+readmeclassifier/*
