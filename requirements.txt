@@ -3,7 +3,7 @@ bs4==0.0.1
 click==7.1.2
 html2text==2020.1.16
 joblib==0.16.0
-lxml==4.6.3
+lxml==4.6.5
 markdown2==2.4.0
 nltk==3.5
 numpy==1.19.1
