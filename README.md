@@ -49,3 +49,6 @@ Each script used in the previous section automates multiple steps in the workflo
 
 ## Notes
 All scripts will log output (such as F1 score, execution times) into `log/` directory. Preprocessed README files (with numbers, `mailto:` links etc. abstracted out) are saved in `temp/` directory. Patterns used for heuristics are listed in `doc/Patterns.ods`.
+
+## License
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT). Please refer to [LICENSE.md](LICENSE.md)
